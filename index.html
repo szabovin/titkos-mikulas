@@ -111,6 +111,11 @@
 
   .hh-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
   .hh-head strong { font-family: "Lobster", cursive; font-weight: 400; font-size: 1.45rem; color: var(--green-dark); }
+  .hh-title { cursor: pointer; border-radius: 8px; padding: 0 4px; overflow-wrap: anywhere; }
+  .hh-title:hover, .hh-title:focus-visible { background: var(--paper-2); outline: none; }
+  .hh-title .pencil { font-size: .85rem; margin-left: 8px; opacity: .35; transition: opacity .15s; }
+  .hh-title:hover .pencil, .hh-title:focus-visible .pencil { opacity: 1; }
+  input.hh-rename { flex: 1 1 auto; font-family: "Lobster", cursive; font-size: 1.3rem; color: var(--green-dark); padding: 4px 10px; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
   .chip {
     display: inline-flex; align-items: center; gap: 2px; background: #fff;
@@ -406,8 +411,31 @@
         state.households.splice(hi, 1); invalidateDraw(); save(); render();
       });
 
+      // A háztartás neve kattintásra szerkeszthető (a sorsolást nem érinti)
+      const title = el('strong', { className: 'hh-title', title: 'Kattints az átnevezéshez', tabIndex: 0 }, ['🏠 ' + hh.name, el('span', { className: 'pencil', textContent: '✏️' })]);
+      const startRename = () => {
+        const edit = el('input', { type: 'text', className: 'hh-rename', value: hh.name, autocomplete: 'off' });
+        let done = false;
+        const finish = commit => {
+          if (done) return;
+          done = true;
+          const name = edit.value.trim();
+          if (commit && name) { hh.name = name; save(); }
+          render();
+        };
+        edit.addEventListener('keydown', e => {
+          if (e.key === 'Enter') finish(true);
+          if (e.key === 'Escape') finish(false);
+        });
+        edit.addEventListener('blur', () => finish(true));
+        title.replaceWith(edit);
+        edit.focus(); edit.select();
+      };
+      title.addEventListener('click', startRename);
+      title.addEventListener('keydown', e => { if (e.key === 'Enter') startRename(); });
+
       $hh.append(el('div', { className: 'card house' }, [
-        el('div', { className: 'hh-head' }, [el('strong', { textContent: '🏠 ' + hh.name }), del]),
+        el('div', { className: 'hh-head' }, [title, del]),
         chips, form,
       ]));
     });
