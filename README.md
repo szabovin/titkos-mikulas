@@ -15,4 +15,4 @@ Az adatok csak a szervező böngészőjében tárolódnak (localStorage). Új so
 
 1. Hozz létre egy új repót a GitHubon (pl. `titkos-mikulas`), és töltsd fel az `index.html`-t.
 2. A repóban: **Settings → Pages → Source: Deploy from a branch**, ág: `main`, mappa: `/ (root)`.
-3. Pár perc múlva elérhető: `https://<felhasználónév>.github.io/titkos-mikulas/`
+3. Pár perc múlva elérhető: `https://szabovin.github.io/titkos-mikulas/`
