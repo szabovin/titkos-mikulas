@@ -4,76 +4,182 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Titkos Mikulás sorsoló</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;600;800&display=swap&subset=latin-ext" rel="stylesheet">
 <style>
   :root {
-    --bg: #fbf7f2; --card: #ffffff; --text: #2b2420; --muted: #7a6f68;
-    --accent: #b3261e; --accent-2: #1f6f4a; --border: #e8ded5; --chip: #f3ece5;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1b1715; --card: #26201d; --text: #f2ebe6; --muted: #a99d95;
-      --accent: #e5554b; --accent-2: #4fb488; --border: #3a322d; --chip: #332b27;
-    }
+    --night-1: #0b1f33; --night-2: #12352a;
+    --paper: #fffaf2; --paper-2: #f6ecdc; --ink: #2d211b; --muted: #7d6a5c;
+    --red: #c8102e; --red-dark: #8f0b20; --green: #1d7a4c; --green-dark: #135536;
+    --gold: #e8b64c; --line: #ead9c0; --snow: #ffffff;
   }
   * { box-sizing: border-box; }
+  html { background: var(--night-1); }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    margin: 0; min-height: 100vh; color: var(--ink);
+    font: 16px/1.55 "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #1d4a6e 0%, transparent 60%),
+      linear-gradient(180deg, var(--night-1) 0%, var(--night-2) 100%) fixed;
+    background-color: var(--night-1);
+    overflow-x: hidden;
   }
-  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
-  h1 { font-size: 1.8rem; margin: 0 0 4px; }
-  h2 { font-size: 1.15rem; margin: 0 0 12px; }
-  .lead { color: var(--muted); margin: 0 0 24px; }
+  #snow { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+  /* Fényfüzér */
+  .garland {
+    position: relative; z-index: 2; display: flex; justify-content: space-around;
+    height: 34px; padding: 0 8px; overflow: hidden;
+    background: radial-gradient(ellipse 60% 18px at 50% 0, transparent 70%, transparent 71%);
+  }
+  .garland::before {
+    content: ""; position: absolute; left: -5%; right: -5%; top: -22px; height: 40px;
+    border-bottom: 2px solid #2f4d3a; border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  }
+  .bulb {
+    width: 12px; height: 18px; margin-top: 12px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    position: relative; animation: twinkle 1.6s infinite ease-in-out;
+  }
+  .bulb::before {
+    content: ""; position: absolute; top: -5px; left: 3px; width: 6px; height: 6px;
+    background: #3b4a40; border-radius: 2px;
+  }
+  .bulb:nth-child(4n+1) { background: #ff4d5e; color: #ff4d5e; }
+  .bulb:nth-child(4n+2) { background: #ffd34d; color: #ffd34d; animation-delay: .4s; }
+  .bulb:nth-child(4n+3) { background: #4dd987; color: #4dd987; animation-delay: .8s; }
+  .bulb:nth-child(4n)   { background: #5ab8ff; color: #5ab8ff; animation-delay: 1.2s; }
+  @keyframes twinkle {
+    0%, 100% { opacity: 1; box-shadow: 0 0 12px 3px currentColor; }
+    50% { opacity: .45; box-shadow: 0 0 2px 0 currentColor; }
+  }
+
+  main { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 16px 16px 72px; }
+
+  header.hero { text-align: center; color: var(--snow); margin: 8px 0 28px; }
+  .hero .icons { font-size: 2.2rem; letter-spacing: 8px; }
+  h1 {
+    font-family: "Lobster", cursive; font-weight: 400; font-size: clamp(2.2rem, 7vw, 3.4rem);
+    margin: 4px 0 6px; line-height: 1.1; color: var(--snow);
+    text-shadow: 0 2px 0 var(--red-dark), 0 0 24px rgba(255, 211, 77, .35);
+  }
+  .hero p { margin: 0 auto; max-width: 520px; color: #d7e4ec; }
+  h2 {
+    font-family: "Lobster", cursive; font-weight: 400; font-size: 1.6rem;
+    margin: 0 0 10px; color: var(--red);
+  }
+
   .card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 16px; margin-bottom: 16px;
+    position: relative; background: var(--paper); border-radius: 16px;
+    padding: 26px 18px 18px; margin-bottom: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    overflow: hidden;
   }
+  /* Cukorpálca csík a kártyák tetején */
+  .card::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 9px;
+    background: repeating-linear-gradient(-45deg, var(--red) 0 12px, #fff 12px 24px);
+  }
+  .card.house::before {
+    background: repeating-linear-gradient(-45deg, var(--green) 0 12px, var(--gold) 12px 24px);
+  }
+
   .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   input[type=text] {
-    flex: 1; min-width: 0; padding: 9px 12px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit;
+    flex: 1 1 180px; min-width: 0; padding: 11px 14px; border-radius: 10px;
+    border: 2px solid var(--line); background: #fff; color: var(--ink); font: inherit;
   }
+  input[type=text]:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(232, 182, 76, .3); }
   button {
-    font: inherit; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border);
-    background: var(--chip); color: var(--text); cursor: pointer; white-space: nowrap;
+    font: inherit; font-weight: 700; padding: 10px 16px; border-radius: 10px; border: none;
+    background: var(--paper-2); color: var(--ink); cursor: pointer; white-space: nowrap;
+    transition: transform .12s ease, filter .12s ease;
   }
-  button:hover { filter: brightness(0.96); }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  button.ok { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
-  button.ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 4px 8px; }
+  button:hover { filter: brightness(1.06); transform: translateY(-1px); }
+  button:active { transform: translateY(1px); }
+  button.primary {
+    background: linear-gradient(180deg, #e0283f, var(--red)); color: #fff;
+    box-shadow: 0 3px 0 var(--red-dark);
+  }
+  button.ok {
+    background: linear-gradient(180deg, #24935c, var(--green)); color: #fff;
+    box-shadow: 0 3px 0 var(--green-dark);
+  }
+  button.ghost { background: transparent; color: var(--muted); padding: 4px 8px; font-weight: 600; }
+  button.big { font-size: 1.15rem; padding: 14px 22px; }
+
   .hh-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .hh-head strong { font-size: 1.05rem; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .hh-head strong { font-family: "Lobster", cursive; font-weight: 400; font-size: 1.45rem; color: var(--green-dark); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
   .chip {
-    display: inline-flex; align-items: center; gap: 2px; background: var(--chip);
-    border-radius: 999px; padding: 3px 4px 3px 12px;
+    display: inline-flex; align-items: center; gap: 2px; background: #fff;
+    border: 2px solid var(--line); border-radius: 999px; padding: 3px 4px 3px 12px; font-weight: 600;
   }
-  .chip button { padding: 0 8px; border: none; background: transparent; color: var(--muted); }
-  .empty { color: var(--muted); font-size: 0.95rem; }
-  .msg { padding: 10px 12px; border-radius: 8px; margin: 12px 0 0; }
-  .msg.err { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
-  .links { list-style: none; padding: 0; margin: 0; }
+  .chip::before { content: "⭐"; font-size: .8rem; margin-right: 4px; }
+  .chip button { padding: 0 8px; background: transparent; color: var(--muted); box-shadow: none; }
+  .empty { color: var(--muted); font-size: .95rem; margin: 0; }
+  .msg { padding: 10px 12px; border-radius: 10px; margin: 12px 0 0; }
+  .msg.err { background: #fde3e6; color: var(--red-dark); font-weight: 600; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+  .links { list-style: none; padding: 0; margin: 10px 0 0; }
   .links li {
     display: flex; justify-content: space-between; align-items: center; gap: 8px;
-    padding: 10px 0; border-bottom: 1px solid var(--border);
+    padding: 10px 0; border-bottom: 2px dashed var(--line); font-weight: 600;
   }
+  .links li::before { content: "🎅"; margin-right: 8px; }
+  .links li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
   .links li:last-child { border-bottom: none; }
-  .links small { color: var(--muted); display: block; }
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 
-  /* Reveal view */
-  .reveal { text-align: center; padding: 40px 16px; }
-  .reveal .big { font-size: 2.4rem; font-weight: 700; color: var(--accent); margin: 16px 0; word-break: break-word; }
-  .reveal .tree { font-size: 3rem; }
+  /* Felfedő nézet */
+  .reveal { text-align: center; color: var(--snow); padding: 24px 0; }
+  .reveal .lead { color: #d7e4ec; margin: 0 0 22px; }
+  .gift {
+    font-size: 7rem; line-height: 1; display: inline-block; cursor: pointer; user-select: none;
+    animation: wiggle 2.4s infinite ease-in-out; margin: 8px 0 18px; border: none; background: none; padding: 0;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .45));
+  }
+  .gift:hover { transform: none; filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .45)) brightness(1.1); }
+  @keyframes wiggle {
+    0%, 70%, 100% { transform: rotate(0); }
+    75% { transform: rotate(-8deg) scale(1.04); }
+    80% { transform: rotate(8deg) scale(1.04); }
+    85% { transform: rotate(-6deg); }
+    90% { transform: rotate(4deg); }
+  }
+  .result-card { max-width: 480px; margin: 24px auto 0; color: var(--ink); text-align: center; animation: pop .55s cubic-bezier(.2, 1.6, .4, 1); }
+  .result-card p { margin: 0; color: var(--muted); font-weight: 600; }
+  .result-card .big {
+    font-family: "Lobster", cursive; font-size: clamp(2.4rem, 10vw, 3.6rem); color: var(--red);
+    margin: 8px 0 6px; overflow-wrap: anywhere; line-height: 1.15;
+  }
+  @keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  .confetti { position: fixed; top: -40px; z-index: 5; pointer-events: none; font-size: 1.6rem; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+
+  footer { position: relative; z-index: 1; text-align: center; color: #9fb7c4; font-size: .85rem; padding-bottom: 24px; }
   .hidden { display: none !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bulb, .gift, .result-card { animation: none; }
+    .confetti { display: none; }
+  }
 </style>
 </head>
 <body>
+<canvas id="snow" aria-hidden="true"></canvas>
+<div class="garland" id="garland" aria-hidden="true"></div>
+
 <main>
   <!-- Szervező nézet -->
   <section id="organizer">
-    <h1>🎁 Titkos Mikulás sorsoló</h1>
-    <p class="lead">Hozz létre háztartásokat, add hozzá a neveket, majd sorsolj. Senki sem húzhatja saját magát vagy a vele egy háztartásban élőket.</p>
+    <header class="hero">
+      <div class="icons" aria-hidden="true">🎄🎁🎄</div>
+      <h1>Titkos Mikulás</h1>
+      <p>Pakold be a családokat, nyomd meg a nagy piros gombot, és küldd szét a titkos linkeket. Senki sem húzhatja saját magát, sem a saját háztartását!</p>
+    </header>
 
     <div class="card">
       <h2>Új háztartás</h2>
@@ -89,38 +195,94 @@
       <h2>Sorsolás</h2>
       <p class="empty" id="summary"></p>
       <div class="actions">
-        <button class="primary" id="draw-btn">Sorsolás indítása</button>
+        <button class="primary big" id="draw-btn">🎲 Sorsolás indítása</button>
         <button id="reset-btn">Minden törlése</button>
       </div>
       <div id="draw-error" class="msg err hidden"></div>
     </div>
 
     <div class="card hidden" id="result-card">
-      <h2>Linkek kiküldése</h2>
-      <p class="empty">Mindenki a saját linkjét kapja meg. A linkből nem derül ki, kit húzott – csak megnyitva látszik.</p>
+      <h2>Mehetnek a linkek! ✉️</h2>
+      <p class="empty">Mindenki a saját linkjét kapja. A linkből nem derül ki, kit húzott – csak megnyitva látszik.</p>
       <ul class="links" id="links"></ul>
     </div>
   </section>
 
   <!-- Húzott név nézet -->
   <section id="reveal" class="reveal hidden">
-    <div class="tree">🎄</div>
     <h1 id="reveal-hello"></h1>
-    <p class="lead">Ha senki sem les a vállad fölött, kattints a gombra!</p>
-    <button class="primary" id="reveal-btn">Mutasd, kit húztam!</button>
-    <div id="reveal-result" class="hidden">
+    <div id="reveal-intro">
+      <p class="lead">Ha senki sem les a vállad fölött, bontsd ki az ajándékot!</p>
+      <button class="gift" id="reveal-btn" aria-label="Mutasd, kit húztam!">🎁</button>
+      <div><button class="primary big" id="reveal-btn-2">Mutasd, kit húztam!</button></div>
+    </div>
+    <div id="reveal-result" class="card result-card hidden">
       <p>A te ajándékozottad:</p>
       <div class="big" id="reveal-name"></div>
-      <p class="lead">Psszt, maradjon titok! 🤫</p>
+      <p>Psszt, maradjon titok! 🤫</p>
     </div>
-    <div id="reveal-error" class="msg err hidden">Ez a link hibás vagy sérült. Kérd el újra a szervezőtől!</div>
+    <div id="reveal-error" class="card hidden">
+      <h2>Hoppá! 🦌</h2>
+      <p class="empty">Ez a link hibás vagy sérült. Kérd el újra a szervezőtől!</p>
+    </div>
   </section>
 </main>
+<footer>Boldog karácsonyt! ❄️</footer>
 
 <script>
 (() => {
   const STORE_KEY = 'titkos-mikulas-v1';
   const KEY = new TextEncoder().encode('TitkosMikulas2026');
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // --- Díszítés: fényfüzér és hóesés ---
+  const garland = document.getElementById('garland');
+  const bulbs = Math.max(8, Math.round(innerWidth / 48));
+  for (let i = 0; i < bulbs; i++) garland.append(Object.assign(document.createElement('span'), { className: 'bulb' }));
+
+  (function snow() {
+    const canvas = document.getElementById('snow');
+    const ctx = canvas.getContext('2d');
+    let flakes = [];
+    function resize() {
+      canvas.width = innerWidth * devicePixelRatio;
+      canvas.height = innerHeight * devicePixelRatio;
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      const count = Math.round(innerWidth / 9);
+      flakes = Array.from({ length: count }, () => ({
+        x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+        r: Math.random() * 2.4 + .8, s: Math.random() * .7 + .3, d: Math.random() * Math.PI * 2,
+      }));
+    }
+    function frame() {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      for (const f of flakes) {
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+        if (reducedMotion) continue;
+        f.d += .01; f.y += f.s; f.x += Math.sin(f.d) * .4;
+        if (f.y > innerHeight + 5) { f.y = -5; f.x = Math.random() * innerWidth; }
+      }
+      if (!reducedMotion) requestAnimationFrame(frame);
+    }
+    addEventListener('resize', () => { resize(); if (reducedMotion) frame(); });
+    resize(); frame();
+  })();
+
+  function confetti() {
+    if (reducedMotion) return;
+    const items = ['🎁', '⭐', '❄️', '🎄', '🔔', '🍪', '✨'];
+    for (let i = 0; i < 40; i++) {
+      const c = document.createElement('span');
+      c.className = 'confetti';
+      c.textContent = items[i % items.length];
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.animationDuration = 2.2 + Math.random() * 2 + 's';
+      c.style.animationDelay = Math.random() * .6 + 's';
+      document.body.append(c);
+      c.addEventListener('animationend', () => c.remove());
+    }
+  }
 
   // --- Kódolás: a húzott név ne legyen olvasható a linkben ---
   function b64urlEncode(bytes) {
@@ -153,19 +315,22 @@
   if (hash) {
     document.getElementById('organizer').classList.add('hidden');
     document.getElementById('reveal').classList.remove('hidden');
-    document.title = 'Titkos Mikulás';
+    document.title = 'Titkos Mikulás 🎁';
     try {
       const { g, r } = decode(hash);
       if (!g || !r) throw new Error('hiányos');
       document.getElementById('reveal-hello').textContent = `Szia, ${g}!`;
       document.getElementById('reveal-name').textContent = r;
-      document.getElementById('reveal-btn').addEventListener('click', e => {
-        e.target.classList.add('hidden');
+      const open = () => {
+        document.getElementById('reveal-intro').classList.add('hidden');
         document.getElementById('reveal-result').classList.remove('hidden');
-      });
+        confetti();
+      };
+      document.getElementById('reveal-btn').addEventListener('click', open);
+      document.getElementById('reveal-btn-2').addEventListener('click', open);
     } catch {
-      document.getElementById('reveal-btn').classList.add('hidden');
-      document.querySelector('#reveal .lead').classList.add('hidden');
+      document.getElementById('reveal-hello').textContent = 'Titkos Mikulás';
+      document.getElementById('reveal-intro').classList.add('hidden');
       document.getElementById('reveal-error').classList.remove('hidden');
     }
     return;
@@ -222,7 +387,7 @@
       });
 
       const input = el('input', { type: 'text', placeholder: 'Név', autocomplete: 'off' });
-      const form = el('form', { className: 'row' }, [input, el('button', { type: 'submit', textContent: 'Név hozzáadása' })]);
+      const form = el('form', { className: 'row' }, [input, el('button', { type: 'submit', className: 'ok', textContent: '+ Név hozzáadása' })]);
       form.addEventListener('submit', e => {
         e.preventDefault();
         const name = input.value.trim();
@@ -241,8 +406,8 @@
         state.households.splice(hi, 1); invalidateDraw(); save(); render();
       });
 
-      $hh.append(el('div', { className: 'card' }, [
-        el('div', { className: 'hh-head' }, [el('strong', { textContent: hh.name }), del]),
+      $hh.append(el('div', { className: 'card house' }, [
+        el('div', { className: 'hh-head' }, [el('strong', { textContent: '🏠 ' + hh.name }), del]),
         chips, form,
       ]));
     });
@@ -256,7 +421,7 @@
       const base = location.href.split('#')[0];
       state.links.forEach(({ giver, code }) => {
         const url = `${base}#${code}`;
-        const btn = el('button', { type: 'button', className: 'ok', textContent: 'Link másolása' });
+        const btn = el('button', { type: 'button', className: 'ok', textContent: '📋 Link másolása' });
         btn.addEventListener('click', () => copy(url, btn));
         $links.append(el('li', {}, [el('span', { textContent: giver }), btn]));
       });
@@ -329,7 +494,7 @@
       showError('Így nem lehet sorsolni: az egyik háztartásban többen vannak, mint az összes többiben együtt.');
       return;
     }
-    if (state.links && !confirm('Már van sorsolás. Az új sorsolás után a korábban kiküldött linkek érvénytelenné válnak. Folytatod?')) return;
+    if (state.links && !confirm('Már van sorsolás. A korábban kiküldött linkek továbbra is megnyílnak, de a régi párokat mutatják – új húzás után mindenkinek az új linket kell elküldeni. Folytatod?')) return;
     const result = draw(people);
     if (!result) {
       showError('Nem sikerült érvényes párosítást találni ezekkel a szabályokkal.');
