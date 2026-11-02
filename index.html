@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titkos Mikulás sorsoló</title>
+<style>
+  :root {
+    --bg: #fbf7f2; --card: #ffffff; --text: #2b2420; --muted: #7a6f68;
+    --accent: #b3261e; --accent-2: #1f6f4a; --border: #e8ded5; --chip: #f3ece5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1715; --card: #26201d; --text: #f2ebe6; --muted: #a99d95;
+      --accent: #e5554b; --accent-2: #4fb488; --border: #3a322d; --chip: #332b27;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.8rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 0 0 12px; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; margin-bottom: 16px;
+  }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 0; padding: 9px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit;
+  }
+  button {
+    font: inherit; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--chip); color: var(--text); cursor: pointer; white-space: nowrap;
+  }
+  button:hover { filter: brightness(0.96); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.ok { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+  button.ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 4px 8px; }
+  .hh-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .hh-head strong { font-size: 1.05rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 2px; background: var(--chip);
+    border-radius: 999px; padding: 3px 4px 3px 12px;
+  }
+  .chip button { padding: 0 8px; border: none; background: transparent; color: var(--muted); }
+  .empty { color: var(--muted); font-size: 0.95rem; }
+  .msg { padding: 10px 12px; border-radius: 8px; margin: 12px 0 0; }
+  .msg.err { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+  .links { list-style: none; padding: 0; margin: 0; }
+  .links li {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .links li:last-child { border-bottom: none; }
+  .links small { color: var(--muted); display: block; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+  /* Reveal view */
+  .reveal { text-align: center; padding: 40px 16px; }
+  .reveal .big { font-size: 2.4rem; font-weight: 700; color: var(--accent); margin: 16px 0; word-break: break-word; }
+  .reveal .tree { font-size: 3rem; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <!-- Szervező nézet -->
+  <section id="organizer">
+    <h1>🎁 Titkos Mikulás sorsoló</h1>
+    <p class="lead">Hozz létre háztartásokat, add hozzá a neveket, majd sorsolj. Senki sem húzhatja saját magát vagy a vele egy háztartásban élőket.</p>
+
+    <div class="card">
+      <h2>Új háztartás</h2>
+      <form id="hh-form" class="row">
+        <input type="text" id="hh-name" placeholder="pl. Kovács család" autocomplete="off">
+        <button type="submit" class="primary">Hozzáadás</button>
+      </form>
+    </div>
+
+    <div id="households"></div>
+
+    <div class="card">
+      <h2>Sorsolás</h2>
+      <p class="empty" id="summary"></p>
+      <div class="actions">
+        <button class="primary" id="draw-btn">Sorsolás indítása</button>
+        <button id="reset-btn">Minden törlése</button>
+      </div>
+      <div id="draw-error" class="msg err hidden"></div>
+    </div>
+
+    <div class="card hidden" id="result-card">
+      <h2>Linkek kiküldése</h2>
+      <p class="empty">Mindenki a saját linkjét kapja meg. A linkből nem derül ki, kit húzott – csak megnyitva látszik.</p>
+      <ul class="links" id="links"></ul>
+    </div>
+  </section>
+
+  <!-- Húzott név nézet -->
+  <section id="reveal" class="reveal hidden">
+    <div class="tree">🎄</div>
+    <h1 id="reveal-hello"></h1>
+    <p class="lead">Ha senki sem les a válla fölött, kattints a gombra!</p>
+    <button class="primary" id="reveal-btn">Mutasd, kit húztam!</button>
+    <div id="reveal-result" class="hidden">
+      <p>A te ajándékozottad:</p>
+      <div class="big" id="reveal-name"></div>
+      <p class="lead">Psszt, maradjon titok! 🤫</p>
+    </div>
+    <div id="reveal-error" class="msg err hidden">Ez a link hibás vagy sérült. Kérd el újra a szervezőtől!</div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const STORE_KEY = 'titkos-mikulas-v1';
+  const KEY = new TextEncoder().encode('TitkosMikulas2026');
+
+  // --- Kódolás: a húzott név ne legyen olvasható a linkben ---
+  function b64urlEncode(bytes) {
+    let s = '';
+    bytes.forEach(b => { s += String.fromCharCode(b); });
+    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function b64urlDecode(str) {
+    const s = atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+    return Uint8Array.from(s, c => c.charCodeAt(0));
+  }
+  function encode(obj) {
+    const data = new TextEncoder().encode(JSON.stringify(obj));
+    const salt = crypto.getRandomValues(new Uint8Array(1))[0];
+    const out = new Uint8Array(data.length + 1);
+    out[0] = salt;
+    data.forEach((b, i) => { out[i + 1] = b ^ KEY[(i + salt) % KEY.length] ^ salt; });
+    return b64urlEncode(out);
+  }
+  function decode(str) {
+    const bytes = b64urlDecode(str);
+    const salt = bytes[0];
+    const data = bytes.slice(1).map((b, i) => b ^ KEY[(i + salt) % KEY.length] ^ salt);
+    return JSON.parse(new TextDecoder().decode(data));
+  }
+
+  // --- Húzott név nézet ---
+  window.addEventListener('hashchange', () => location.reload());
+  const hash = location.hash.slice(1);
+  if (hash) {
+    document.getElementById('organizer').classList.add('hidden');
+    document.getElementById('reveal').classList.remove('hidden');
+    document.title = 'Titkos Mikulás';
+    try {
+      const { g, r } = decode(hash);
+      if (!g || !r) throw new Error('hiányos');
+      document.getElementById('reveal-hello').textContent = `Szia, ${g}!`;
+      document.getElementById('reveal-name').textContent = r;
+      document.getElementById('reveal-btn').addEventListener('click', e => {
+        e.target.classList.add('hidden');
+        document.getElementById('reveal-result').classList.remove('hidden');
+      });
+    } catch {
+      document.getElementById('reveal-btn').classList.add('hidden');
+      document.querySelector('#reveal .lead').classList.add('hidden');
+      document.getElementById('reveal-error').classList.remove('hidden');
+    }
+    return;
+  }
+
+  // --- Szervező nézet ---
+  let state = { households: [], links: null };
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (saved && Array.isArray(saved.households)) state = saved;
+  } catch {}
+
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {}
+  }
+
+  const $hh = document.getElementById('households');
+  const $summary = document.getElementById('summary');
+  const $err = document.getElementById('draw-error');
+  const $resultCard = document.getElementById('result-card');
+  const $links = document.getElementById('links');
+
+  function el(tag, props = {}, children = []) {
+    const n = Object.assign(document.createElement(tag), props);
+    children.forEach(c => n.append(c));
+    return n;
+  }
+
+  function showError(text) {
+    $err.textContent = text;
+    $err.classList.toggle('hidden', !text);
+  }
+
+  function invalidateDraw() {
+    if (state.links) {
+      state.links = null;
+      showError('');
+    }
+  }
+
+  function render() {
+    $hh.innerHTML = '';
+    state.households.forEach((hh, hi) => {
+      const chips = el('div', { className: 'chips' });
+      if (hh.members.length === 0) {
+        chips.append(el('span', { className: 'empty', textContent: 'Még nincs senki ebben a háztartásban.' }));
+      }
+      hh.members.forEach((name, mi) => {
+        const rm = el('button', { type: 'button', title: 'Eltávolítás', textContent: '×' });
+        rm.addEventListener('click', () => {
+          hh.members.splice(mi, 1); invalidateDraw(); save(); render();
+        });
+        chips.append(el('span', { className: 'chip' }, [name, rm]));
+      });
+
+      const input = el('input', { type: 'text', placeholder: 'Név', autocomplete: 'off' });
+      const form = el('form', { className: 'row' }, [input, el('button', { type: 'submit', textContent: 'Név hozzáadása' })]);
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const name = input.value.trim();
+        if (!name) return;
+        if (allNames().some(n => n.toLocaleLowerCase('hu') === name.toLocaleLowerCase('hu'))) {
+          alert(`„${name}” már szerepel a listán. Adj meg egyedi nevet (pl. vezetéknévvel)!`);
+          return;
+        }
+        hh.members.push(name); invalidateDraw(); save(); render();
+        $hh.querySelectorAll('.card')[hi].querySelector('input').focus();
+      });
+
+      const del = el('button', { type: 'button', className: 'ghost', textContent: 'Háztartás törlése' });
+      del.addEventListener('click', () => {
+        if (hh.members.length && !confirm(`Biztosan törlöd: ${hh.name}?`)) return;
+        state.households.splice(hi, 1); invalidateDraw(); save(); render();
+      });
+
+      $hh.append(el('div', { className: 'card' }, [
+        el('div', { className: 'hh-head' }, [el('strong', { textContent: hh.name }), del]),
+        chips, form,
+      ]));
+    });
+
+    const total = allNames().length;
+    $summary.textContent = `${state.households.length} háztartás, ${total} résztvevő.`;
+
+    $links.innerHTML = '';
+    $resultCard.classList.toggle('hidden', !state.links);
+    if (state.links) {
+      const base = location.href.split('#')[0];
+      state.links.forEach(({ giver, code }) => {
+        const url = `${base}#${code}`;
+        const btn = el('button', { type: 'button', className: 'ok', textContent: 'Link másolása' });
+        btn.addEventListener('click', () => copy(url, btn));
+        $links.append(el('li', {}, [el('span', { textContent: giver }), btn]));
+      });
+    }
+  }
+
+  function allNames() {
+    return state.households.flatMap(h => h.members);
+  }
+
+  async function copy(text, btn) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = el('textarea', { value: text });
+      document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    }
+    const old = btn.textContent;
+    btn.textContent = 'Másolva! ✓';
+    setTimeout(() => { btn.textContent = old; }, 1500);
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1);
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // Véletlen párosítás visszalépéses kereséssel:
+  // senki sem húzhatja saját magát vagy a saját háztartásából valakit.
+  function draw(people) {
+    const givers = shuffle([...people]);
+    const used = new Set();
+    const result = new Map();
+    function step(i) {
+      if (i === givers.length) return true;
+      const g = givers[i];
+      for (const r of shuffle([...people])) {
+        if (used.has(r.name) || r.house === g.house) continue;
+        used.add(r.name); result.set(g.name, r.name);
+        if (step(i + 1)) return true;
+        used.delete(r.name); result.delete(g.name);
+      }
+      return false;
+    }
+    return step(0) ? result : null;
+  }
+
+  document.getElementById('hh-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const input = document.getElementById('hh-name');
+    const name = input.value.trim() || `${state.households.length + 1}. háztartás`;
+    state.households.push({ name, members: [] });
+    input.value = '';
+    invalidateDraw(); save(); render();
+    const cards = $hh.querySelectorAll('.card');
+    cards[cards.length - 1].querySelector('input').focus();
+  });
+
+  document.getElementById('draw-btn').addEventListener('click', () => {
+    const people = state.households.flatMap((h, hi) => h.members.map(name => ({ name, house: hi })));
+    if (people.length < 2) {
+      showError('Legalább két résztvevő kell a sorsoláshoz.');
+      return;
+    }
+    const biggest = Math.max(...state.households.map(h => h.members.length));
+    if (biggest > people.length - biggest) {
+      showError('Így nem lehet sorsolni: az egyik háztartásban többen vannak, mint az összes többiben együtt.');
+      return;
+    }
+    if (state.links && !confirm('Már van sorsolás. Az új sorsolás után a korábban kiküldött linkek érvénytelenné válnak. Folytatod?')) return;
+    const result = draw(people);
+    if (!result) {
+      showError('Nem sikerült érvényes párosítást találni ezekkel a szabályokkal.');
+      return;
+    }
+    showError('');
+    state.links = people
+      .map(p => ({ giver: p.name, code: encode({ g: p.name, r: result.get(p.name) }) }))
+      .sort((a, b) => a.giver.localeCompare(b.giver, 'hu'));
+    save(); render();
+    $resultCard.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (!confirm('Minden háztartás, név és sorsolás törlődik. Biztos vagy benne?')) return;
+    state = { households: [], links: null };
+    showError(''); save(); render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
